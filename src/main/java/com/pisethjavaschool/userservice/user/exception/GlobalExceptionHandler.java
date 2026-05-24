@@ -20,6 +20,8 @@ public class GlobalExceptionHandler {
         problem.setType(URI.create("https://api.pisethjavaschool.com/problems/not-found"));
         return problem;
     }
+    
+    /*
 
     @ExceptionHandler(BusinessException.class)
     public ProblemDetail handleBusiness(BusinessException exception) {
@@ -29,6 +31,24 @@ public class GlobalExceptionHandler {
         problem.setProperty("errorCode", exception.getErrorCode());
         return problem;
     }
+    
+    */
+    
+    @ExceptionHandler(BusinessException.class)
+    public ProblemDetail handleBusiness(BusinessException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                exception.getStatus(),
+                exception.getMessage()
+        );
+
+        problem.setTitle(exception.getErrorCode());
+        problem.setType(URI.create("https://pisethjavaschool/problems/" 
+                + exception.getErrorCode().toLowerCase().replace("_", "-")));
+        problem.setProperty("errorCode", exception.getErrorCode());
+
+        return problem;
+    }
+
 
     @ExceptionHandler({MethodArgumentNotValidException.class, ServerWebInputException.class})
     public ProblemDetail handleValidation(Exception exception) {
