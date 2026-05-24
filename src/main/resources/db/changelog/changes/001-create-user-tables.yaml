@@ -1,0 +1,95 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 001-create-user-tables
+      author: chaywang
+
+      changes:
+
+        - createTable:
+            tableName: user_account
+
+            columns:
+
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: keycloak_user_id
+                  type: varchar(100)
+
+              - column:
+                  name: user_type
+                  type: varchar(30)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: country_code
+                  type: varchar(10)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: phone_number
+                  type: varchar(30)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: registration_status
+                  type: varchar(40)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: account_status
+                  type: varchar(30)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: created_at
+                  type: timestamptz
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamptz
+
+                  constraints:
+                    nullable: false
+
+        - addUniqueConstraint:
+            tableName: user_account
+            columnNames: user_type, country_code, phone_number
+            constraintName: uk_user_account_type_phone
+
+        - addUniqueConstraint:
+            tableName: user_account
+            columnNames: keycloak_user_id
+            constraintName: uk_user_account_keycloak_user_id
+
+        - createIndex:
+            tableName: user_account
+            indexName: idx_user_account_phone
+
+            columns:
+              - column:
+                  name: country_code
+
+              - column:
+                  name: phone_number

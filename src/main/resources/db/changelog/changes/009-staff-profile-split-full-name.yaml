@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-staff-profile-split-full-name
+      author: piseth
+
+      changes:
+        # ============================
+        # Add new columns
+        # ============================
+        - addColumn:
+            tableName: staff_profile
+            columns:
+              - column:
+                  name: first_name
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_name
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+
+        # ============================
+        # Remove old column
+        # ============================
+        - dropColumn:
+            tableName: staff_profile
+            columnName: full_name

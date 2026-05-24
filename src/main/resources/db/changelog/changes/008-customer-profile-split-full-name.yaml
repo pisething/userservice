@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-customer-profile-split-full-name
+      author: piseth
+
+      changes:
+        # ============================
+        # Add new columns
+        # ============================
+        - addColumn:
+            tableName: customer_profile
+            columns:
+              - column:
+                  name: first_name
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: last_name
+                  type: varchar(40)
+                  constraints:
+                    nullable: false
+
+        # ============================
+        # Remove old column
+        # ============================
+        - dropColumn:
+            tableName: customer_profile
+            columnName: full_name

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Service</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #f7f9fc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 720px;
+            margin: 120px auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 10px;
+            color: #1f2937;
+        }
+        p {
+            color: #4b5563;
+            margin-bottom: 30px;
+        }
+        a.button {
+            display: inline-block;
+            padding: 14px 28px;
+            background: #2563eb;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+        a.button:hover {
+            background: #1d4ed8;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>User Service API</h1>
+    <p>
+        Welcome to the User Service.<br>
+        This service provides Customer and User management APIs.
+    </p>
+    <a class="button" href="/swagger-ui/index.html">
+        Open Swagger UI
+    </a>
+    <div class="footer">
+        Spring Boot 4 · WebFlux · R2DBC · Liquibase
+    </div>
+</div>
+</body>
+</html>

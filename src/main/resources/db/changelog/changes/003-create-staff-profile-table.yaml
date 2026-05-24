@@ -1,0 +1,81 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 003-create-staff-profile-table
+      author: chaywang
+
+      changes:
+
+        - createTable:
+            tableName: staff_profile
+
+            columns:
+
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: user_account_id
+                  type: uuid
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: full_name
+                  type: varchar(150)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: email
+                  type: varchar(150)
+
+              - column:
+                  name: employee_code
+                  type: varchar(50)
+
+              - column:
+                  name: department_id
+                  type: uuid
+
+              - column:
+                  name: position
+                  type: varchar(100)
+
+              - column:
+                  name: photo_object_key
+                  type: varchar(500)
+
+              - column:
+                  name: created_at
+                  type: timestamptz
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamptz
+
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: staff_profile
+            baseColumnNames: user_account_id
+            referencedTableName: user_account
+            referencedColumnNames: id
+            constraintName: fk_staff_profile_user_account
+
+        - addUniqueConstraint:
+            tableName: staff_profile
+            columnNames: user_account_id
+            constraintName: uk_staff_profile_user_account

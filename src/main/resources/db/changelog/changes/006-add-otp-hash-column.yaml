@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-add-otp-hash-column
+      author: chaywang
+      changes:
+        - addColumn:
+            tableName: phone_otp
+            columns:
+              - column:
+                  name: otp_hash
+                  type: varchar(255)

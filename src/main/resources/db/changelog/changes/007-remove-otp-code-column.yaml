@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-remove-otp-code-column
+      author: chaywang
+
+      changes:
+        - dropColumn:
+            tableName: phone_otp
+            columnName: otp_code

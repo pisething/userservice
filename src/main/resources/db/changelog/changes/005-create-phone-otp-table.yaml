@@ -1,0 +1,108 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 005-create-phone-otp-table
+      author: chaywang
+
+      changes:
+
+        - createTable:
+            tableName: phone_otp
+
+            columns:
+
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: country_code
+                  type: varchar(10)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: phone_number
+                  type: varchar(30)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: otp_code
+                  type: varchar(10)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: purpose
+                  type: varchar(30)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: status
+                  type: varchar(30)
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: attempts
+                  type: int
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: expires_at
+                  type: timestamptz
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: verified_at
+                  type: timestamptz
+
+              - column:
+                  name: created_at
+                  type: timestamptz
+
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: updated_at
+                  type: timestamptz
+
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            tableName: phone_otp
+            indexName: idx_phone_otp_lookup
+
+            columns:
+              - column:
+                  name: country_code
+
+              - column:
+                  name: phone_number
+
+              - column:
+                  name: purpose
+
+              - column:
+                  name: status
+
+              - column:
+                  name: created_at
