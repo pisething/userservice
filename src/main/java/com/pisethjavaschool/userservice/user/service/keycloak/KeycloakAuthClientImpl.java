@@ -10,6 +10,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pisethjavaschool.userservice.config.KeycloakProperties;
 import com.pisethjavaschool.userservice.user.dto.LoginResponse;
+import com.pisethjavaschool.userservice.user.exception.AccountNotFullySetUpException;
+import com.pisethjavaschool.userservice.user.exception.InvalidCredentialException;
+import com.pisethjavaschool.userservice.user.exception.KeycloakIntegrationException;
 import com.pisethjavaschool.userservice.user.util.LogMasker;
 
 import lombok.RequiredArgsConstructor;
@@ -43,7 +46,8 @@ public class KeycloakAuthClientImpl implements KeycloakAuthClient {
                                 .flatMap(body -> handleLoginResponse(response.statusCode().isError(), body))
                 );
     }
-
+/*
+    
     private Mono<LoginResponse> handleLoginResponse(boolean hasError, String body) {
         if (hasError) {
             log.error("Keycloak login failed. Body: {}", body);
@@ -56,6 +60,46 @@ public class KeycloakAuthClientImpl implements KeycloakAuthClient {
         return toLoginResponse(body);
     }
 
+*/
+   /* 
+    
+    private Mono<LoginResponse> handleLoginResponse(boolean hasError, String body) {
+        if (hasError) {
+            log.warn("Keycloak login failed. Body: {}", body);
+
+            if (body.contains("invalid_grant")) {
+                return Mono.error(new InvalidCredentialException());
+            }
+
+            return Mono.error(new KeycloakIntegrationException(
+                    "Unable to login at the moment. Please try again later."
+            ));
+        }
+
+        return toLoginResponse(body);
+    }
+    */
+    
+    private Mono<LoginResponse> handleLoginResponse(boolean hasError, String body) {
+        if (!hasError) {
+            return toLoginResponse(body);
+        }
+
+        log.warn("Keycloak login failed. Body: {}", body);
+
+        if (body.contains("Account is not fully set up")) {
+            return Mono.error(new AccountNotFullySetUpException());
+        }
+
+        if (body.contains("invalid_grant")) {
+            return Mono.error(new InvalidCredentialException());
+        }
+
+        return Mono.error(new KeycloakIntegrationException(
+                "Unable to login at the moment. Please try again later."
+        ));
+    }
+    
     private Mono<LoginResponse> toLoginResponse(String body) {
         try {
             Map<?, ?> response = objectMapper.readValue(body, Map.class);

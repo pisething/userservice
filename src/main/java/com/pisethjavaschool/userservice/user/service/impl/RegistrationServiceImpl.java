@@ -73,11 +73,11 @@ public class RegistrationServiceImpl implements RegistrationService {
                 request.countryCode(),
                 request.phoneNumber()
         );
-        /*
-        return userAccountFinder.findByPhoneAndUserType(phone, request.userType())
-                .flatMap(existingAccount -> resumeRegistration(existingAccount, phone))
-                .switchIfEmpty(createRegistration(phone, request.userType()));
-                */
+        
+        //078676767 => +85578676767
+        //78676767 => +85578676767
+        // 078 9 898 976 => +855789898976
+       
         return userAccountFinder.findByPhoneAndUserType(phone, request.userType())
                 .flatMap(existingAccount -> resumeRegistration(existingAccount, phone))
                 .switchIfEmpty(createRegistration(phone, request.userType()))
