@@ -10,6 +10,7 @@ import com.pisethjavaschool.userservice.user.facade.registration.VerifyRegistrat
 import com.pisethjavaschool.userservice.user.mapper.RegistrationStatusMapper;
 import com.pisethjavaschool.userservice.user.service.OtpService;
 import com.pisethjavaschool.userservice.user.service.PhoneNumberService;
+import com.pisethjavaschool.userservice.user.service.RegistrationSessionService;
 import com.pisethjavaschool.userservice.user.service.UserAccountFinder;
 import com.pisethjavaschool.userservice.user.service.UserAccountStateService;
 import com.pisethjavaschool.userservice.user.util.LogMasker;
@@ -28,6 +29,7 @@ public class VerifyRegistrationOtpFacadeImpl implements VerifyRegistrationOtpFac
     private final OtpService otpService;
     private final UserAccountStateService userAccountStateService;
     private final RegistrationStatusMapper registrationStatusMapper;
+    private final RegistrationSessionService registrationSessionService;
 
     @Override
     public Mono<RegistrationStatusResponse> execute(VerifyOtpRequest request) {
@@ -68,7 +70,17 @@ public class VerifyRegistrationOtpFacadeImpl implements VerifyRegistrationOtpFac
                  * Mapper is responsible only for converting entity to response.
                  * This keeps response-building logic out of the Facade.
                  */
-                .map(registrationStatusMapper::toResponse)
+                //.map(registrationStatusMapper::toResponse)
+                
+                .flatMap(account -> registrationSessionService.createSession(
+                        account.getId(),
+                        account.getUserType(),
+                        account.getRegistrationStatus()
+                )
+                .map(registrationToken -> registrationStatusMapper.toResponse(
+                        account,
+                        registrationToken
+                )))
 
                 .doOnSuccess(response -> log.info(
                         "Verify registration OTP completed. userType={}, phone={}, status={}",
