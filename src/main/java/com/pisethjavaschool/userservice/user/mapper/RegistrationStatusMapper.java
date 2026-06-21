@@ -9,15 +9,20 @@ import com.pisethjavaschool.userservice.user.dto.RegistrationStatusResponse;
 
 @Component
 public class RegistrationStatusMapper {
+	
+	public RegistrationStatusResponse toResponse(UserAccount account) {
+	        return toResponse(account, null);
+	}
 
-    public RegistrationStatusResponse toResponse(UserAccount account) {
+    public RegistrationStatusResponse toResponse(UserAccount account, String registrationToken) {
         return new RegistrationStatusResponse(
                 true,
                 account.getId(),
                 account.getUserType(),
                 account.getRegistrationStatus(),
                 account.getAccountStatus(),
-                resolveNextStep(account.getRegistrationStatus())
+                resolveNextStep(account.getRegistrationStatus()),
+                registrationToken
         );
     }
 
@@ -28,7 +33,8 @@ public class RegistrationStatusMapper {
                 userType,
                 null,
                 null,
-                "REGISTER_PHONE"
+                "REGISTER_PHONE",
+                null
         );
     }
 
