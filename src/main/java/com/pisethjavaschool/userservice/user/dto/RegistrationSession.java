@@ -1,18 +1,16 @@
 package com.pisethjavaschool.userservice.user.dto;
 
+import java.time.Instant;
 import java.util.UUID;
 
-import com.pisethjavaschool.userservice.user.domain.enumeration.AccountStatus;
 import com.pisethjavaschool.userservice.user.domain.enumeration.RegistrationStatus;
 import com.pisethjavaschool.userservice.user.domain.enumeration.UserType;
 
-public record RegistrationStatusResponse(
-        Boolean exists,
+public record RegistrationSession(
         UUID userAccountId,
         UserType userType,
         RegistrationStatus registrationStatus,
-        AccountStatus accountStatus,
-        String nextStep,
-        String registrationToken
+        Instant createdAt,
+        Instant expiresAt
 ) {
 }

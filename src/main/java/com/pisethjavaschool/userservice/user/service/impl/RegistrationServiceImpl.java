@@ -63,20 +63,28 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Transactional
     public Mono<CustomerProfileResponse> completeCustomerProfile(
             UUID userAccountId,
+            String registrationToken,
             CustomerProfileRequest request
     ) {
-        /*
-         * Reason:
-         * RegistrationServiceImpl should not know profile completion workflow.
-         * It delegates to the Facade.
-         */
-        return completeCustomerProfileFacade.execute(userAccountId, request);
+        return completeCustomerProfileFacade.execute(
+                userAccountId,
+                registrationToken,
+                request
+        );
     }
-    
+
     @Override
     @Transactional
-    public Mono<UserAccountResponse> setPin(UUID userAccountId, SetPinRequest request) {
-        return setRegistrationPinFacade.execute(userAccountId, request);
+    public Mono<UserAccountResponse> setPin(
+            UUID userAccountId,
+            String registrationToken,
+            SetPinRequest request
+    ) {
+        return setRegistrationPinFacade.execute(
+                userAccountId,
+                registrationToken,
+                request
+        );
     }
 
     @Override

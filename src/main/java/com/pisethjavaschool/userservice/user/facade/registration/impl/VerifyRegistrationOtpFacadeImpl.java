@@ -1,5 +1,7 @@
 package com.pisethjavaschool.userservice.user.facade.registration.impl;
 
+import org.springframework.stereotype.Component;
+
 import com.pisethjavaschool.userservice.user.domain.enumeration.OtpPurpose;
 import com.pisethjavaschool.userservice.user.dto.NormalizedPhone;
 import com.pisethjavaschool.userservice.user.dto.RegistrationStatusResponse;
@@ -8,32 +10,28 @@ import com.pisethjavaschool.userservice.user.facade.registration.VerifyRegistrat
 import com.pisethjavaschool.userservice.user.mapper.RegistrationStatusMapper;
 import com.pisethjavaschool.userservice.user.service.OtpService;
 import com.pisethjavaschool.userservice.user.service.PhoneNumberService;
+import com.pisethjavaschool.userservice.user.service.RegistrationSessionService;
 import com.pisethjavaschool.userservice.user.service.UserAccountFinder;
 import com.pisethjavaschool.userservice.user.service.UserAccountStateService;
 import com.pisethjavaschool.userservice.user.util.LogMasker;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class VerifyRegistrationOtpFacadeImpl implements VerifyRegistrationOtpFacade {
-
-    private final PhoneNumberService phoneNumberService;
+	private final PhoneNumberService phoneNumberService;
     private final UserAccountFinder userAccountFinder;
     private final OtpService otpService;
     private final UserAccountStateService userAccountStateService;
     private final RegistrationStatusMapper registrationStatusMapper;
+    private final RegistrationSessionService registrationSessionService;
 
     @Override
     public Mono<RegistrationStatusResponse> execute(VerifyOtpRequest request) {
-        /*
-         * Reason:
-         * Phone normalization is the first step because the database stores phone
-         * in normalized format.
-         */
         NormalizedPhone phone = phoneNumberService.normalize(
                 request.countryCode(),
                 request.phoneNumber()
@@ -47,12 +45,6 @@ public class VerifyRegistrationOtpFacadeImpl implements VerifyRegistrationOtpFac
 
         return userAccountFinder.findRequiredByPhoneAndUserType(phone, request.userType())
 
-                /*
-                 * Reason:
-                 * OTP verification and account state update are part of one workflow.
-                 * The Facade controls the workflow, but the real work is delegated
-                 * to smaller services.
-                 */
                 .flatMap(account -> otpService.verifyOtp(
                                 phone.countryCode(),
                                 phone.phoneNumber(),
@@ -61,18 +53,22 @@ public class VerifyRegistrationOtpFacadeImpl implements VerifyRegistrationOtpFac
                         )
                         .then(userAccountStateService.markOtpVerified(account)))
 
-                /*
-                 * Reason:
-                 * Mapper is responsible only for converting entity to response.
-                 * This keeps response-building logic out of the Facade.
-                 */
-                .map(registrationStatusMapper::toResponse)
+                .flatMap(account -> registrationSessionService.createSession(
+                                account.getId(),
+                                account.getUserType(),
+                                account.getRegistrationStatus()
+                        )
+                        .map(registrationToken -> registrationStatusMapper.toResponse(
+                                account,
+                                registrationToken
+                        )))
 
                 .doOnSuccess(response -> log.info(
-                        "Verify registration OTP completed. userType={}, phone={}, status={}",
+                        "Verify registration OTP completed. userType={}, phone={}, status={}, nextStep={}",
                         request.userType(),
                         LogMasker.maskPhone(phone.phoneNumber()),
-                        response.registrationStatus()
+                        response.registrationStatus(),
+                        response.nextStep()
                 ))
 
                 .doOnError(error -> log.warn(

@@ -1,0 +1,29 @@
+services:
+  user-redis:
+    image: redis:7.4-alpine
+    container_name: user-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - pisethjavaschool-dev-net
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - userservice_redis_data:/data
+    restart: unless-stopped
+
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: redis-insight
+    ports:
+      - "5540:5540"
+    networks:
+      - pisethjavaschool-dev-net
+    depends_on:
+      - user-redis
+
+volumes:
+  userservice_redis_data:
+
+networks:
+  pisethjavaschool-dev-net:
+    external: true
