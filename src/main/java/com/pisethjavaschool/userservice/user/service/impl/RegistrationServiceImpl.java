@@ -51,9 +51,10 @@ public class RegistrationServiceImpl implements RegistrationService {
     @Transactional
     public Mono<CustomerProfileResponse> completeCustomerProfile(
             UUID userAccountId,
+            String registrationToken,
             CustomerProfileRequest request
     ) {
-        return completeCustomerProfileFacade.execute(userAccountId, request);
+        return completeCustomerProfileFacade.execute(userAccountId, registrationToken, request);
     }
 
     @Override

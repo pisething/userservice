@@ -9,5 +9,5 @@ import reactor.core.publisher.Mono;
 
 public interface CompleteCustomerProfileFacade {
 
-    Mono<CustomerProfileResponse> execute(UUID userAccountId, CustomerProfileRequest request);
+    Mono<CustomerProfileResponse> execute(UUID userAccountId, String registrationToken, CustomerProfileRequest request);
 }

@@ -19,7 +19,7 @@ public interface RegistrationService {
 
     Mono<RegistrationStatusResponse> verifyOtp(VerifyOtpRequest request);
 
-    Mono<CustomerProfileResponse> completeCustomerProfile(UUID userAccountId, CustomerProfileRequest request);
+    Mono<CustomerProfileResponse> completeCustomerProfile(UUID userAccountId, String registrationToken, CustomerProfileRequest request);
 
     Mono<UserAccountResponse> setPin(UUID userAccountId, SetPinRequest request);
 
