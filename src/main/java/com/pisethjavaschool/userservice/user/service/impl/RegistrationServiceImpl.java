@@ -18,6 +18,7 @@ import com.pisethjavaschool.userservice.user.facade.registration.CheckRegistrati
 import com.pisethjavaschool.userservice.user.facade.registration.CompleteCustomerProfileFacade;
 import com.pisethjavaschool.userservice.user.facade.registration.RegisterPhoneFacade;
 import com.pisethjavaschool.userservice.user.facade.registration.ResendRegistrationOtpFacade;
+import com.pisethjavaschool.userservice.user.facade.registration.ResumeRegistrationFacade;
 import com.pisethjavaschool.userservice.user.facade.registration.SetRegistrationPinFacade;
 import com.pisethjavaschool.userservice.user.facade.registration.VerifyRegistrationOtpFacade;
 import com.pisethjavaschool.userservice.user.service.RegistrationService;
@@ -36,6 +37,7 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final SetRegistrationPinFacade setRegistrationPinFacade;
     private final CheckRegistrationFacade checkRegistrationFacade;
     private final ResendRegistrationOtpFacade resendRegistrationOtpFacade;
+    private final ResumeRegistrationFacade resumeRegistrationFacade;
 
     @Override
     @Transactional
@@ -80,6 +82,12 @@ public class RegistrationServiceImpl implements RegistrationService {
          * Resend OTP must only work for an existing registration.
          */
         return resendRegistrationOtpFacade.execute(request);
+    }
+    
+    @Override
+    @Transactional
+    public Mono<RegistrationStatusResponse> resumeRegistration(RegisterPhoneRequest request) {
+        return resumeRegistrationFacade.execute(request);
     }
 
     

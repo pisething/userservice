@@ -2,14 +2,13 @@ package com.pisethjavaschool.userservice.user.facade.registration.impl;
 
 import org.springframework.stereotype.Component;
 
-import com.pisethjavaschool.userservice.user.domain.enumeration.OtpPurpose;
 import com.pisethjavaschool.userservice.user.dto.NormalizedPhone;
 import com.pisethjavaschool.userservice.user.dto.RegisterPhoneRequest;
-import com.pisethjavaschool.userservice.user.dto.RegisterPhoneResponse;
-import com.pisethjavaschool.userservice.user.facade.registration.ResendRegistrationOtpFacade;
-import com.pisethjavaschool.userservice.user.mapper.RegisterPhoneResponseMapper;
-import com.pisethjavaschool.userservice.user.service.OtpService;
+import com.pisethjavaschool.userservice.user.dto.RegistrationStatusResponse;
+import com.pisethjavaschool.userservice.user.facade.registration.ResumeRegistrationFacade;
+import com.pisethjavaschool.userservice.user.mapper.RegistrationStatusMapper;
 import com.pisethjavaschool.userservice.user.service.PhoneNumberService;
+import com.pisethjavaschool.userservice.user.service.RegistrationSessionService;
 import com.pisethjavaschool.userservice.user.service.UserAccountFinder;
 import com.pisethjavaschool.userservice.user.util.LogMasker;
 import com.pisethjavaschool.userservice.user.validation.UserAccountRegistrationValidator;
@@ -21,25 +20,23 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ResendRegistrationOtpFacadeImpl implements ResendRegistrationOtpFacade {
-
-    private static final String OTP_RESENT_MESSAGE = "OTP resent.";
+public class ResumeRegistrationFacadeImpl implements ResumeRegistrationFacade {
 
     private final PhoneNumberService phoneNumberService;
     private final UserAccountFinder userAccountFinder;
     private final UserAccountRegistrationValidator registrationValidator;
-    private final OtpService otpService;
-    private final RegisterPhoneResponseMapper registerPhoneResponseMapper;
+    private final RegistrationSessionService registrationSessionService;
+    private final RegistrationStatusMapper registrationStatusMapper;
 
     @Override
-    public Mono<RegisterPhoneResponse> execute(RegisterPhoneRequest request) {
+    public Mono<RegistrationStatusResponse> execute(RegisterPhoneRequest request) {
         NormalizedPhone phone = phoneNumberService.normalize(
                 request.countryCode(),
                 request.phoneNumber()
         );
 
         log.info(
-                "Resend registration OTP requested. userType={}, phone={}",
+                "Resume registration requested. userType={}, phone={}",
                 request.userType(),
                 LogMasker.maskPhone(phone.phoneNumber())
         );
@@ -48,24 +45,25 @@ public class ResendRegistrationOtpFacadeImpl implements ResendRegistrationOtpFac
                         phone,
                         request.userType()
                 )
-                .flatMap(account -> registrationValidator.validateCanResendRegistrationOtp(account)
-                        .then(otpService.sendOtp(
-                                phone.countryCode(),
-                                phone.phoneNumber(),
-                                OtpPurpose.REGISTRATION
+                .flatMap(account -> registrationValidator.validateCanResumeRegistration(account)
+                        .then(registrationSessionService.createSession(
+                                account.getId(),
+                                account.getUserType(),
+                                account.getRegistrationStatus()
                         ))
-                        .thenReturn(registerPhoneResponseMapper.toResponse(
+                        .map(registrationToken -> registrationStatusMapper.toResponse(
                                 account,
-                                OTP_RESENT_MESSAGE
+                                registrationToken
                         )))
                 .doOnSuccess(response -> log.info(
-                        "Resend registration OTP completed. userType={}, phone={}, registrationStatus={}",
+                        "Resume registration completed. userType={}, phone={}, registrationStatus={}, nextStep={}",
                         request.userType(),
                         LogMasker.maskPhone(phone.phoneNumber()),
-                        response.registrationStatus()
+                        response.registrationStatus(),
+                        response.nextStep()
                 ))
                 .doOnError(error -> log.warn(
-                        "Resend registration OTP failed. userType={}, phone={}, reason={}",
+                        "Resume registration failed. userType={}, phone={}, reason={}",
                         request.userType(),
                         LogMasker.maskPhone(phone.phoneNumber()),
                         error.getMessage()
