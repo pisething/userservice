@@ -26,11 +26,6 @@ public class CheckRegistrationFacadeImpl implements CheckRegistrationFacade {
 
     @Override
     public Mono<RegistrationStatusResponse> execute(RegisterPhoneRequest request) {
-        /*
-         * Reason:
-         * Always normalize phone before searching.
-         * User may input phone as 078..., 78..., or with spaces.
-         */
         NormalizedPhone phone = phoneNumberService.normalize(
                 request.countryCode(),
                 request.phoneNumber()
@@ -44,16 +39,23 @@ public class CheckRegistrationFacadeImpl implements CheckRegistrationFacade {
 
         return userAccountFinder.findByPhoneAndUserType(phone, request.userType())
 
-                /*
-                 * Reason:
-                 * If account exists, return its real registration status.
-                 */
                 .map(registrationStatusMapper::toResponse)
 
-                /*
-                 * Reason:
-                 * If account does not exist, return NOT_REGISTERED response.
-                 */
-                .defaultIfEmpty(registrationStatusMapper.notRegistered(request.userType()));
+                .defaultIfEmpty(registrationStatusMapper.notRegistered(request.userType()))
+
+                .doOnSuccess(response -> log.info(
+                        "Check registration completed. userType={}, phone={}, exists={}, nextStep={}",
+                        request.userType(),
+                        LogMasker.maskPhone(phone.phoneNumber()),
+                        response.exists(),
+                        response.nextStep()
+                ))
+
+                .doOnError(error -> log.warn(
+                        "Check registration failed. userType={}, phone={}, reason={}",
+                        request.userType(),
+                        LogMasker.maskPhone(phone.phoneNumber()),
+                        error.getMessage()
+                ));
     }
 }

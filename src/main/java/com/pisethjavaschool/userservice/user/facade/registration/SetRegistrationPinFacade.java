@@ -9,5 +9,5 @@ import reactor.core.publisher.Mono;
 
 public interface SetRegistrationPinFacade {
 
-    Mono<UserAccountResponse> execute(UUID userAccountId, SetPinRequest request);
+    Mono<UserAccountResponse> execute(UUID userAccountId,String registrationToken, SetPinRequest request);
 }
