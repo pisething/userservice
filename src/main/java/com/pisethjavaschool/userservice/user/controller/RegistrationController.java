@@ -71,4 +71,11 @@ public class RegistrationController {
     ) {
         return service.resendOtp(request);
     }
+    
+    @PostMapping("/resume")
+    public Mono<RegistrationStatusResponse> resumeRegistration(
+            @Valid @RequestBody RegisterPhoneRequest request
+    ) {
+        return service.resumeRegistration(request);
+    }
 }

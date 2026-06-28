@@ -53,4 +53,16 @@ public class UserAccountRegistrationValidator {
 
         return Mono.empty();
     }
+    
+    public Mono<Void> validateCanResumeRegistration(UserAccount account) {
+        if (account.getRegistrationStatus() == RegistrationStatus.PIN_SET) {
+            return Mono.error(new UserAlreadyRegisteredException());
+        }
+
+        if (account.getRegistrationStatus() == RegistrationStatus.PHONE_REGISTERED) {
+            return Mono.error(new OtpNotVerifiedException());
+        }
+
+        return Mono.empty();
+    }
 }

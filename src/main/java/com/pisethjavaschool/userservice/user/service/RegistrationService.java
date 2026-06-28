@@ -26,4 +26,6 @@ public interface RegistrationService {
     Mono<RegistrationStatusResponse> checkRegistration(RegisterPhoneRequest request);
     
     Mono<RegisterPhoneResponse> resendOtp(RegisterPhoneRequest request);
+    
+    Mono<RegistrationStatusResponse> resumeRegistration(RegisterPhoneRequest request);
 }
