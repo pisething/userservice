@@ -7,6 +7,7 @@ import com.pisethjavaschool.userservice.user.domain.enumeration.RegistrationStat
 import com.pisethjavaschool.userservice.user.domain.enumeration.UserType;
 import com.pisethjavaschool.userservice.user.exception.InvalidUserTypeException;
 import com.pisethjavaschool.userservice.user.exception.OtpNotVerifiedException;
+import com.pisethjavaschool.userservice.user.exception.OtpResendNotAllowedException;
 import com.pisethjavaschool.userservice.user.exception.ProfileNotCompletedException;
 import com.pisethjavaschool.userservice.user.exception.UserAlreadyRegisteredException;
 
@@ -22,6 +23,15 @@ public class UserAccountRegistrationValidator {
 
         return Mono.empty();
     }
+    
+    public Mono<Void> validateCanResendRegistrationOtp(UserAccount account) {
+        if (account.getRegistrationStatus() != RegistrationStatus.PHONE_REGISTERED) {
+            return Mono.error(new OtpResendNotAllowedException());
+        }
+
+        return Mono.empty();
+    }
+
 
     public Mono<Void> validateCanCompleteCustomerProfile(UserAccount account) {
         if (account.getUserType() != UserType.CUSTOMER) {

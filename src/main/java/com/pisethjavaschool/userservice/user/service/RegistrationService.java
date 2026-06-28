@@ -21,7 +21,9 @@ public interface RegistrationService {
 
     Mono<CustomerProfileResponse> completeCustomerProfile(UUID userAccountId, String registrationToken, CustomerProfileRequest request);
 
-    Mono<UserAccountResponse> setPin(UUID userAccountId, SetPinRequest request);
+    Mono<UserAccountResponse> setPin(UUID userAccountId, String registrationToken, SetPinRequest request);
 
     Mono<RegistrationStatusResponse> checkRegistration(RegisterPhoneRequest request);
+    
+    Mono<RegisterPhoneResponse> resendOtp(RegisterPhoneRequest request);
 }
