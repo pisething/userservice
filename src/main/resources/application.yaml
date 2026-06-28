@@ -28,7 +28,9 @@ spring:
       timeout: ${REDIS_TIMEOUT:3s}
 
 registration-session:
-  expire-minutes: ${REGISTRATION_SESSION_EXPIRE_MINUTES:15}			
+  expire-minutes: ${REGISTRATION_SESSION_EXPIRE_MINUTES:15}
+reset-pin-session:
+  expire-minutes: ${RESET_PIN_SESSION_EXPIRE_MINUTES:10}				
 
 keycloak:
   base-url: ${KEYCLOAK_BASE_URL:http://localhost:9090}

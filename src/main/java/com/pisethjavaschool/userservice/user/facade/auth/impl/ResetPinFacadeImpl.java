@@ -5,20 +5,15 @@ import java.time.Instant;
 import org.springframework.stereotype.Component;
 
 import com.pisethjavaschool.userservice.user.domain.UserAccount;
-import com.pisethjavaschool.userservice.user.domain.enumeration.OtpPurpose;
-import com.pisethjavaschool.userservice.user.dto.NormalizedPhone;
 import com.pisethjavaschool.userservice.user.dto.ResetPinRequest;
 import com.pisethjavaschool.userservice.user.dto.UserAccountResponse;
 import com.pisethjavaschool.userservice.user.facade.auth.ResetPinFacade;
 import com.pisethjavaschool.userservice.user.mapper.UserAccountMapper;
 import com.pisethjavaschool.userservice.user.repository.UserAccountRepository;
-import com.pisethjavaschool.userservice.user.service.OtpService;
-import com.pisethjavaschool.userservice.user.service.PhoneNumberService;
+import com.pisethjavaschool.userservice.user.service.ResetPinSessionService;
 import com.pisethjavaschool.userservice.user.service.UserAccountFinder;
 import com.pisethjavaschool.userservice.user.service.keycloak.KeycloakAdminClient;
 import com.pisethjavaschool.userservice.user.service.keycloak.dto.KeycloakResetPasswordRequest;
-import com.pisethjavaschool.userservice.user.util.LogMasker;
-import com.pisethjavaschool.userservice.user.validation.LoginValidator;
 import com.pisethjavaschool.userservice.user.validation.PinValidator;
 
 import lombok.RequiredArgsConstructor;
@@ -30,56 +25,38 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ResetPinFacadeImpl implements ResetPinFacade {
 
-    private final PhoneNumberService phoneNumberService;
-    private final UserAccountFinder userAccountFinder;
-    private final LoginValidator loginValidator;
     private final PinValidator pinValidator;
-    private final OtpService otpService;
+    private final ResetPinSessionService resetPinSessionService;
+    private final UserAccountFinder userAccountFinder;
     private final KeycloakAdminClient keycloakAdminClient;
     private final UserAccountRepository userAccountRepository;
     private final UserAccountMapper userAccountMapper;
 
     @Override
-    public Mono<UserAccountResponse> execute(ResetPinRequest request) {
+    public Mono<UserAccountResponse> execute(String resetToken, ResetPinRequest request) {
         pinValidator.validateMatched(request.pin(), request.confirmPin());
 
-        NormalizedPhone phone = phoneNumberService.normalize(
-                request.countryCode(),
-                request.phoneNumber()
-        );
+        log.info("Reset PIN requested.");
 
-        log.info(
-                "Reset PIN requested. userType={}, phone={}",
-                request.userType(),
-                LogMasker.maskPhone(phone.phoneNumber())
-        );
-
-        return userAccountFinder.findRequiredByPhoneAndUserType(phone, request.userType())
-                .flatMap(account -> loginValidator.validateCanLogin(account).thenReturn(account))
-                .flatMap(account -> otpService.verifyOtp(
-                                phone.countryCode(),
-                                phone.phoneNumber(),
-                                OtpPurpose.FORGOT_PIN,
-                                request.otpCode()
-                        )
-                        .then(keycloakAdminClient.resetPassword(
-                                new KeycloakResetPasswordRequest(
-                                        account.getKeycloakUserId(),
-                                        request.pin(),
-                                        false
+        return resetPinSessionService.getRequiredSession(resetToken)
+                .flatMap(session -> userAccountFinder.findRequiredById(session.userAccountId())
+                        .flatMap(account -> keycloakAdminClient.resetPassword(
+                                        new KeycloakResetPasswordRequest(
+                                                account.getKeycloakUserId(),
+                                                request.pin(),
+                                                false
+                                        )
                                 )
-                        ))
-                        .then(updateLastModifiedAt(account)))
+                                .then(updateLastModifiedAt(account))
+                                .flatMap(updatedAccount -> resetPinSessionService.deleteSession(resetToken)
+                                        .thenReturn(updatedAccount))))
                 .map(userAccountMapper::toResponse)
                 .doOnSuccess(response -> log.info(
-                        "Reset PIN completed. userType={}, phone={}",
-                        request.userType(),
-                        LogMasker.maskPhone(phone.phoneNumber())
+                        "Reset PIN completed. userAccountId={}",
+                        response.id()
                 ))
                 .doOnError(error -> log.warn(
-                        "Reset PIN failed. userType={}, phone={}, reason={}",
-                        request.userType(),
-                        LogMasker.maskPhone(phone.phoneNumber()),
+                        "Reset PIN failed. reason={}",
                         error.getMessage()
                 ));
     }

@@ -5,17 +5,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.springframework.data.redis.core.ReactiveStringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pisethjavaschool.userservice.config.RegistrationSessionProperties;
 import com.pisethjavaschool.userservice.user.domain.enumeration.RegistrationStatus;
 import com.pisethjavaschool.userservice.user.domain.enumeration.UserType;
 import com.pisethjavaschool.userservice.user.dto.RegistrationSession;
 import com.pisethjavaschool.userservice.user.exception.InvalidRegistrationTokenException;
 import com.pisethjavaschool.userservice.user.service.RegistrationSessionService;
+import com.pisethjavaschool.userservice.user.session.RedisSessionStore;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +26,7 @@ public class RedisRegistrationSessionService implements RegistrationSessionServi
 
     private static final String KEY_PREFIX = "registration-session:";
 
-    private final ReactiveStringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final RedisSessionStore sessionStore;
     private final RegistrationSessionProperties properties;
     private final Clock clock;
 
@@ -53,9 +50,12 @@ public class RedisRegistrationSessionService implements RegistrationSessionServi
                 expiresAt
         );
 
-        return Mono.fromCallable(() -> objectMapper.writeValueAsString(session))
-                .flatMap(json -> redisTemplate.opsForValue()
-                        .set(key, json, Duration.ofMinutes(properties.expireMinutes())))
+        return sessionStore.save(
+                        key,
+                        session,
+                        Duration.ofMinutes(properties.expireMinutes()),
+                        InvalidRegistrationTokenException::new
+                )
                 .thenReturn(token)
                 .doOnSuccess(createdToken -> log.info(
                         "Registration session created. userAccountId={}, userType={}, status={}, expiresAt={}",
@@ -77,11 +77,12 @@ public class RedisRegistrationSessionService implements RegistrationSessionServi
             return Mono.error(new InvalidRegistrationTokenException());
         }
 
-        return redisTemplate.opsForValue()
-                .get(buildKey(token))
-                .switchIfEmpty(Mono.error(new InvalidRegistrationTokenException()))
-                .flatMap(this::deserialize)
-                .flatMap(this::validateNotExpired);
+        return sessionStore.getRequired(
+                buildKey(token),
+                RegistrationSession.class,
+                RegistrationSession::expiresAt,
+                InvalidRegistrationTokenException::new
+        );
     }
 
     @Override
@@ -123,10 +124,12 @@ public class RedisRegistrationSessionService implements RegistrationSessionServi
                         return Mono.error(new InvalidRegistrationTokenException());
                     }
 
-                    return Mono.fromCallable(() -> objectMapper.writeValueAsString(updatedSession))
-                            .flatMap(json -> redisTemplate.opsForValue()
-                                    .set(buildKey(token), json, remainingTtl))
-                            .then();
+                    return sessionStore.save(
+                            buildKey(token),
+                            updatedSession,
+                            remainingTtl,
+                            InvalidRegistrationTokenException::new
+                    );
                 })
                 .doOnSuccess(unused -> log.info(
                         "Registration session status updated. status={}",
@@ -140,26 +143,8 @@ public class RedisRegistrationSessionService implements RegistrationSessionServi
             return Mono.empty();
         }
 
-        return redisTemplate.delete(buildKey(token))
-                .then()
+        return sessionStore.delete(buildKey(token))
                 .doOnSuccess(unused -> log.info("Registration session deleted."));
-    }
-
-    private Mono<RegistrationSession> deserialize(String json) {
-        try {
-            return Mono.just(objectMapper.readValue(json, RegistrationSession.class));
-        } catch (JsonProcessingException exception) {
-            log.warn("Failed to deserialize registration session. reason={}", exception.getMessage());
-            return Mono.error(new InvalidRegistrationTokenException());
-        }
-    }
-
-    private Mono<RegistrationSession> validateNotExpired(RegistrationSession session) {
-        if (session.expiresAt().isBefore(Instant.now(clock))) {
-            return Mono.error(new InvalidRegistrationTokenException());
-        }
-
-        return Mono.just(session);
     }
 
     private String buildKey(String token) {
