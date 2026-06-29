@@ -28,17 +28,19 @@ spring:
       timeout: ${REDIS_TIMEOUT:3s}
 
 registration-session:
-  expire-minutes: ${REGISTRATION_SESSION_EXPIRE_MINUTES:15}			
+  expire-minutes: ${REGISTRATION_SESSION_EXPIRE_MINUTES:15}	
+reset-pin-session:
+  expire-minutes: ${RESET_PIN_SESSION_EXPIRE_MINUTES:10}        
 
 keycloak:
   base-url: ${KEYCLOAK_BASE_URL:http://localhost:9090}
   realm: ${KEYCLOAK_REALM:room-system}
   admin:
     client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:user-service}
-    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:iIUHyp58x9MNBmS9dP0SknpB8Rk3jS47}
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:vhIGAwfMKvYwomnwVdyGbo7HF9IqInzn}
   client:
     client-id: ${KEYCLOAK_LOGIN_CLIENT_ID:user-login}
-    client-secret: ${KEYCLOAK_LOGIN_CLIENT_SECRET:JvmMCjJHLz4htfpxxVZEgD6xlElAsWR9}
+    client-secret: ${KEYCLOAK_LOGIN_CLIENT_SECRET:6NvGAcGrKyIhhbf0dXDLxfr1PYSWmKtE}
 
 otp:
   expire-minutes: ${OTP_EXPIRE_MINUTES:5}

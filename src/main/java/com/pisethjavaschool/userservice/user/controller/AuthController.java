@@ -3,6 +3,7 @@ package com.pisethjavaschool.userservice.user.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +13,8 @@ import com.pisethjavaschool.userservice.user.dto.LoginRequest;
 import com.pisethjavaschool.userservice.user.dto.LoginResponse;
 import com.pisethjavaschool.userservice.user.dto.ResetPinRequest;
 import com.pisethjavaschool.userservice.user.dto.UserAccountResponse;
+import com.pisethjavaschool.userservice.user.dto.VerifyForgotPinOtpRequest;
+import com.pisethjavaschool.userservice.user.dto.VerifyForgotPinOtpResponse;
 import com.pisethjavaschool.userservice.user.service.AuthService;
 
 import jakarta.validation.Valid;
@@ -37,7 +40,17 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-pin/reset")
-    public Mono<UserAccountResponse> resetPin(@Valid @RequestBody ResetPinRequest request) {
-        return service.resetPin(request);
+    public Mono<UserAccountResponse> resetPin(
+    		@RequestHeader("X-Reset-Token") String resetToken, 
+    @Valid @RequestBody ResetPinRequest request) {
+        return service.resetPin(resetToken, request);
     }
+    
+    @PostMapping("/forgot-pin/verify")
+    public Mono<VerifyForgotPinOtpResponse> verifyForgotPinOtp(
+            @Valid @RequestBody VerifyForgotPinOtpRequest request
+    ) {
+        return service.verifyForgotPinOtp(request);
+    }
+
 }

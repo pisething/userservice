@@ -17,6 +17,8 @@ import com.pisethjavaschool.userservice.user.dto.VerifyOtpRequest;
 import com.pisethjavaschool.userservice.user.facade.registration.CheckRegistrationFacade;
 import com.pisethjavaschool.userservice.user.facade.registration.CompleteCustomerProfileFacade;
 import com.pisethjavaschool.userservice.user.facade.registration.RegisterPhoneFacade;
+import com.pisethjavaschool.userservice.user.facade.registration.ResendRegistrationOtpFacade;
+import com.pisethjavaschool.userservice.user.facade.registration.ResumeRegistrationFacade;
 import com.pisethjavaschool.userservice.user.facade.registration.SetRegistrationPinFacade;
 import com.pisethjavaschool.userservice.user.facade.registration.VerifyRegistrationOtpFacade;
 import com.pisethjavaschool.userservice.user.service.RegistrationService;
@@ -34,6 +36,8 @@ public class RegistrationServiceImpl implements RegistrationService {
     private final CompleteCustomerProfileFacade completeCustomerProfileFacade;
     private final SetRegistrationPinFacade setRegistrationPinFacade;
     private final CheckRegistrationFacade checkRegistrationFacade;
+    private final ResendRegistrationOtpFacade resendRegistrationOtpFacade;
+    private final ResumeRegistrationFacade resumeRegistrationFacade;
 
     @Override
     @Transactional
@@ -59,13 +63,31 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     @Transactional
-    public Mono<UserAccountResponse> setPin(UUID userAccountId, SetPinRequest request) {
-        return setRegistrationPinFacade.execute(userAccountId, request);
+    public Mono<UserAccountResponse> setPin(UUID userAccountId, String registrationToken, SetPinRequest request) {
+        return setRegistrationPinFacade.execute(userAccountId, registrationToken, request);
     }
 
     @Override
     public Mono<RegistrationStatusResponse> checkRegistration(RegisterPhoneRequest request) {
         return checkRegistrationFacade.execute(request);
+    }
+    
+    @Override
+    @Transactional
+    public Mono<RegisterPhoneResponse> resendOtp(RegisterPhoneRequest request) {
+        /*
+         * Reason:
+         * Resend OTP is a separate use case from register phone.
+         * Register phone may create a new account.
+         * Resend OTP must only work for an existing registration.
+         */
+        return resendRegistrationOtpFacade.execute(request);
+    }
+    
+    @Override
+    @Transactional
+    public Mono<RegistrationStatusResponse> resumeRegistration(RegisterPhoneRequest request) {
+        return resumeRegistrationFacade.execute(request);
     }
 
     

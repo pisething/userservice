@@ -6,5 +6,5 @@ import com.pisethjavaschool.userservice.user.dto.UserAccountResponse;
 import reactor.core.publisher.Mono;
 
 public interface ResetPinFacade {
-    Mono<UserAccountResponse> execute(ResetPinRequest request);
+    Mono<UserAccountResponse> execute(String resetToken, ResetPinRequest request);
 }

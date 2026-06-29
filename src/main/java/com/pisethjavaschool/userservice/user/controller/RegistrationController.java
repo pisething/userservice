@@ -53,12 +53,29 @@ public class RegistrationController {
     }
 
     @PostMapping("/{userAccountId}/pin")
-    public Mono<UserAccountResponse> setPin(@PathVariable UUID userAccountId, @Valid @RequestBody SetPinRequest request) {
-        return service.setPin(userAccountId, request);
+    public Mono<UserAccountResponse> setPin(
+    		@PathVariable UUID userAccountId, 
+    		@RequestHeader("X-Registration-Token") String registrationToken,
+    		@Valid @RequestBody SetPinRequest request) {
+        return service.setPin(userAccountId, registrationToken, request);
     }
 
     @PostMapping("/status")
     public Mono<RegistrationStatusResponse> checkRegistration(@Valid @RequestBody RegisterPhoneRequest request) {
         return service.checkRegistration(request);
+    }
+    
+    @PostMapping("/otp/resend")
+    public Mono<RegisterPhoneResponse> resendOtp(
+            @Valid @RequestBody RegisterPhoneRequest request
+    ) {
+        return service.resendOtp(request);
+    }
+    
+    @PostMapping("/resume")
+    public Mono<RegistrationStatusResponse> resumeRegistration(
+            @Valid @RequestBody RegisterPhoneRequest request
+    ) {
+        return service.resumeRegistration(request);
     }
 }
